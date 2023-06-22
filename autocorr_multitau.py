@@ -9,17 +9,18 @@ Purpose: get autocorrelation curve from binned photon arrival data
 
  ---variables---
  below 5 variables are user input variables 
-     filename : Strings, filepath or filename in current directory
+     filename: Strings, filepath or filename in current directory
      bin_width_sec: float, binning width in second, desired input value 
      resolution: int, number of points on each level of lag-time, when to scale up
      time_gate_op: boolean, if time-gate option applied
      time_gate_valid: float, desired range of valid time when time_gate_op is True
  
  
- nanotimes = photon_data.nanotimes.read()
- tcspc_unit = photon_data.nanotimes_specs.tcspc_unit.read()
- tcspc_num_bins = photon_data.nanotimes_specs.tcspc_num_bins.read()
- tcspc_range = photon_data.nanotimes_specs.tcspc_range.read()
+ nanotimes: array-like, photon nanotimes in integer number
+ tcspc_unit: float, unit time of tcspc in second
+ tcspc_num_bins: int, split number between laser pulse
+ tcspc_range: float, range in time between pulse
+ bins: array-like, bin edges array from tcspc_num_bins for histogram
  
  ts:            array-like, photon arrival time stamps in integer number 
  ts_unit:       float, unit time of timestamp in second, fixed information from fluoroscence spectroscopy
@@ -71,8 +72,10 @@ ts_unit = photon_data.timestamps_specs.timestamps_unit.read() # ~50ns
 #%% Figure 1: Tcspc histogram 
 
 # figure 1 nanotimes histogram
+
 fig1, ax = plt.subplots()
-ax.hist(nanotimes, bins = tcspc_num_bins)
+bins = np.arange(tcspc_num_bins)
+ax.hist(nanotimes, bins = bins)
 
 # figure 1 x-axis (nanotimes in unit count) 
 ax.tick_params(top = True, labeltop = True, bottom = False, labelbottom = False, labelsize=15)
