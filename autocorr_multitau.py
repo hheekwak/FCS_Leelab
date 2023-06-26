@@ -108,7 +108,7 @@ def main():
    bin_width_ns = 200 #nano second
    resolution = 8
    time_gate_op = True
-   time_gate_valid = {'start': 25, 'end': 40} # nano second
+   time_gate_valid = {'start': 25, 'end': 50} # nano second
 
 
    #Data read
@@ -143,7 +143,7 @@ def main():
    tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, start, end)
    
    if (time_gate_op):
-       ts = ts[((nanotimes > start) & (nanotimes < end))]
+       ts = ts[((nanotimes >= start) & (nanotimes <= end))]   # filter valid photons
     
    bin_width_sec = bin_width_ns * 1E-9  # convert unit from ns to second
    autocorr (ts, ts_unit, bin_width_sec, resolution)
