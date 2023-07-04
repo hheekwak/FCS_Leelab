@@ -12,7 +12,8 @@ Purpose: get autocorrelation curve from binned photon arrival data
      filename: Strings, filepath or filename in current directory
      bin_width_ns: int, binning width in nano second, desired input value 
      resolution: int, number of points on each level of lag-time, when to scale up
-     time_gate_op: boolean, if time-gate option applied
+     time_gate_op: Strings, user input Y/N
+         tg_op: boolean, if time-gate option applied
      time_gate_valid: dic ('start': int, 'end': int), desired range of valid time in nano second when time_gate_op is True
  
  
@@ -23,6 +24,7 @@ Purpose: get autocorrelation curve from binned photon arrival data
  bins: array-like, bin edges array from tcspc_num_bins for histogram
  
  ts:            array-like, photon arrival time stamps in integer number 
+ num_channel:
  ts_unit:       float, unit time of timestamp in second, fixed information from fluoroscence spectroscopy
  bin_width_n:   int, binning width in timestamp unit, calculated from above two
  binned_data:   array-like, binned count of photon arrival
@@ -35,22 +37,35 @@ Purpose: get autocorrelation curve from binned photon arrival data
 
 #%matplotlib inline #This line is for Jupyter Notebook environment
 import os
+import csv
 import numpy as np
 import math
 import tables
 import matplotlib.pyplot as plt
 import multipletau as mt
+import user_input
 from binning import photon_bin
+
+
 
 
 #%% Tcspc histogram 
 
-def tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, start, end):
+def tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, ch_detectors, channels, time_gate):
     
     plt.rcParams.update({'figure.figsize':(7,5), 'figure.dpi':100})
     fig, ax = plt.subplots()
     bins = np.arange(tcspc_num_bins)
-    ax.hist(nanotimes, bins = bins)
+    
+    clr = 'g' # first channel span color green
+    nanotimes_d = {}
+    for ch in channels: 
+        nanotimes_d['ch{0}'.format(ch)] = nanotimes[ch_detectors == ch]
+        ax.hist(nanotimes_d['ch{0}'.format(ch)], bins = bins, color=clr)
+        # valid range when time gated
+        ax.axvspan(time_gate['ch{0}_st'.format(ch)], time_gate['ch{0}_end'.format(ch)], color=clr, alpha=0.1)
+        clr = 'r' # second channel span color red
+        
     
     # x-axis (nanotimes in unit count) 
     ax.tick_params(top = True, labeltop = True, bottom = False, labelbottom = False, labelsize=15)
@@ -72,20 +87,74 @@ def tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, start, end):
     ax.set_yscale("log")
     ax.yaxis.set_tick_params(labelsize=15)
     
-    # valid range when time gated
-    ax.axvspan(start, end, color='g', alpha=0.1) # color green
+    return nanotimes_d
 
 
-#%% Autocorrelation graph
+#%% Correlation graph
 
-def autocorr (ts, ts_unit, bin_width_sec, resolution):
-    binwidth_n = int(bin_width_sec / ts_unit) # binwidth in numbers : how many cycles per bin
-    binned_data = photon_bin(ts, binwidth_n).astype(np.float64)
-    autocorr_array = mt.autocorrelate(binned_data, m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
+def corr(ts_gated_d, ts_unit, bin_width_sec, resolution, channels):
+    """
+    
+
+    Parameters
+    ----------
+    ts_gated_d : TYPE
+        DESCRIPTION.
+    ts_unit : TYPE
+        DESCRIPTION.
+    bin_width_sec : TYPE
+        DESCRIPTION.
+    resolution : TYPE
+        DESCRIPTION.
+    channels : TYPE
+        DESCRIPTION.
+
+    Raises
+    ------
+    ValueError
+        DESCRIPTION.
+
+    Returns
+    -------
+    corr_array : TYPE
+        DESCRIPTION.
+
+    """
     
     plt.rcParams.update({'figure.figsize':(7,5), 'figure.dpi':100})
     plt.figure()
-    plt.plot(autocorr_array[:,0], autocorr_array[:, 1])
+    
+    binwidth_n = int(bin_width_sec / ts_unit) # binwidth in numbers : how many cycles per bin
+    
+    if len(channels) == 1: 
+        binned_data = photon_bin(ts_gated_d['ch{0}'.format(channels[0])], binwidth_n, ts_gated_d['ch{0}'.format(channels[0])][0], ts_gated_d['ch{0}'.format(channels[0])][-1] ).astype(np.float64)
+        corr_array = mt.autocorrelate(binned_data, m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
+        plt.plot(corr_array[:,0], corr_array[:, 1])
+    
+    elif len(channels) == 2:
+        # set time range (start/end) of binning to match length for all 4 correlations, 
+        start = min(ts_gated_d['ch{0}'.format(channels[0])][0], ts_gated_d['ch{0}'.format(channels[1])][0])
+        end = max(ts_gated_d['ch{0}'.format(channels[0])][-1], ts_gated_d['ch{0}'.format(channels[1])][-1])
+        
+        binneddata_d = {}
+        corr_d = {}
+        clr = 'b'   # 1st ch autocorrelation graph color is blue
+        for ch in channels: 
+            binneddata_d['ch{0}'.format(ch)] = photon_bin(ts_gated_d['ch{0}'.format(ch)], binwidth_n, start, end).astype(np.float64)
+            corr_d['auto_ch{0}'.format(ch)] = mt.autocorrelate(binneddata_d['ch{0}'.format(ch)], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
+            plt.plot(corr_d['auto_ch{0}'.format(ch)][:,0], corr_d['auto_ch{0}'.format(ch)][:, 1], color = clr)
+            clr = 'g' # 2nd ch autocorrelation graph color is green
+            
+        corr_d['cross_pos'] = mt.correlate(binneddata_d['ch{0}'.format(channels[0])], binneddata_d['ch{0}'.format(channels[1])], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress="average", ret_sum=False)
+        corr_d['cross_neg'] = mt.correlate(binneddata_d['ch{0}'.format(channels[1])], binneddata_d['ch{0}'.format(channels[0])], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress="average", ret_sum=False)
+        
+        plt.plot(corr_d['cross_pos'][:,0], corr_d['cross_pos'][:, 1], color = 'k') # positive crosscorrelation color is black
+        plt.plot(corr_d['cross_neg'][:,0], corr_d['cross_neg'][:, 1], color = 'm') # positive crosscorrelation color is magenta
+        
+    else:
+        raise ValueError('ATTENTION: more than 2 channels detected. Check detectors data.\n')
+    
+   
     
     # x-axis (lag-time in second) to Logarithmic scale 
     plt.xscale("log")
@@ -99,27 +168,45 @@ def autocorr (ts, ts_unit, bin_width_sec, resolution):
     plt.ylabel('g(τ)', fontdict = font_y)
     plt.yticks(fontsize=15)
     
+    # TODO: 7/3 WORKING HERE how to build up the corr_array?
+    return corr_array
+    
 #%%
 
 def main():
+    """
+    
+
+    Returns
+    -------
+    None.
+
+    """
    # User input data
+   filename = input("Enter file name: ") #test.hdf5
+   a = user_input.UserInput(filename)
+   b_w = input("Enter bin width in ns (default = 200 ns) : ") # nano second
+   if b_w !="":
+       a.bin_width_ns = int(b_w)
+   res = input("Enter desired resolution in int (default = 8): ")    
+   if res !="":
+       a.resolution = res 
 
-   filename = "test.hdf5"
-   bin_width_ns = 200 #nano second
-   resolution = 8
-   time_gate_op = True
-   time_gate_valid = {'start': 25, 'end': 50} # nano second
+   tg_confirm = False
+   while (tg_confirm == False):
+       tg_op = input("Will you use time gating? (Y/N): ")
+       if tg_op == "Y" or tg_op =="y":
+           a.time_gate_op = True
+           tg_confirm = True
+       elif tg_op == "N" or  tg_op == "n":
+           a.time_gate_op = False
+           tg_confirm = True
+       else:
+           pass
 
 
-   #Data read
-   if os.path.exists(filename):
-       print('File found, it will be proceed.')
-   else:
-       print('ATTENTION: File not found, please check the directory name.\n'
-             '           (current value "%s")' % filename)
 
-
-   h5file = tables.open_file(filename)
+   h5file = tables.open_file(a.filename)
    photon_data = h5file.root.photon_data
    photon_data.measurement_specs.measurement_type.read().decode()
 
@@ -129,24 +216,46 @@ def main():
    tcspc_range = photon_data.nanotimes_specs.tcspc_range.read()
 
    ts = photon_data.timestamps.read()
+   ch_detectors = photon_data.detectors.read()
+   channels = np.unique(ch_detectors)
    ts_unit = photon_data.timestamps_specs.timestamps_unit.read() # ~50ns
    
-   if (time_gate_op):
-       start = math.floor(time_gate_valid['start'] *1E-9 / tcspc_unit)  # covert to unit number
-       end = math.ceil(time_gate_valid['end'] *1E-9 / tcspc_unit) # covert to unit number
-       
-   else:                    # whole range
-       start = 0
-       end = math.ceil(ts_unit/ tcspc_unit)
-       
+   #TODO: ADD Check when len(channels) > 2
    
-   tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, start, end)
+
+   tg = {}
+   if a.time_gate_op == True:
+       for ch in channels: 
+           tg['ch{0}_st'.format(ch)] = math.floor(int(input ("time gate START time of CH{0} in nano second: ".format(ch)))*1E-9 / tcspc_unit) # convert to count number
+           tg['ch{0}_end'.format(ch)] = math.ceil(int(input ("time gate END time of CH{0} in nano second: ".format(ch)))*1E-9 / tcspc_unit) # convert to count number
+   else:
+       for ch in channels:  
+           tg['ch{0}_st'.format(ch)] = 0
+           tg['ch{0}_end'.format(ch)] = math.ceil(ts_unit/ tcspc_unit)
+             
+   nanotimes_d = tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, ch_detectors, channels, tg)
+
+   # split each channel's timestamps and apply timegating
+   ts_gated_d = {} # gated timestamps 
+   for ch in channels: 
+       ts_gated_d['ch{0}'.format(ch)] = ts[ch_detectors == ch]
+       ts_gated_d['ch{0}'.format(ch)] = ts_gated_d['ch{0}'.format(ch)][(nanotimes_d['ch{0}'.format(ch)] >= tg['ch{0}_st'.format(ch)]) & (nanotimes_d['ch{0}'.format(ch)] <= tg['ch{0}_end'.format(ch)])]
+
+   bin_width_sec = a.bin_width_ns * 1E-9  # convert unit from ns to second
+   correlation = corr(ts_gated_d, ts_unit, bin_width_sec, a.resolution, channels)
+# TODO: build 'correlation' in corr function
+
+   # Data write
+   #header_file =
    
-   if (time_gate_op):
-       ts = ts[((nanotimes >= start) & (nanotimes <= end))]   # filter valid photons
-    
-   bin_width_sec = bin_width_ns * 1E-9  # convert unit from ns to second
-   autocorr (ts, ts_unit, bin_width_sec, resolution)
+
+   
+   #ts_file = 
+   
+   
+   
+   #autocorr_file = 
+   
 
 
 if __name__ == "__main__":

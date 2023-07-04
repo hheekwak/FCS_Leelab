@@ -18,7 +18,7 @@ dye_names = 'ATTO488, '
 buffer_name = 'PBS pH 7.4'
 
 # Assign the directory path where the data files are stored
-directory = "G:\My Drive\Hyunhee work_local\FCS_leelab" # Enter the top directory
+directory = "G:\My Drive\Hyunhee work_local\FCS_Leelab\just_folder" # Enter the top directory
 
 #%%
 import os
