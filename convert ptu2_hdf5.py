@@ -68,8 +68,11 @@ for root, dirs, files in os.walk(directory):
             # Print the file comment from the tags field
             print(tags['File_Comment']['data'])
             
-            # Plot the alternation histogram from the data
-            phc.plotter.alternation_hist(d)
+            if (meta['record_type'][-2:] == 'T2'):         # added by HK for T2 mode (line 71-73) 
+                pass
+            else: 
+                # Plot the alternation histogram from the data
+                phc.plotter.alternation_hist(d)
             
             # Extract the detectors and their counts from the photon_data dictionary
             detectors = d['photon_data']['detectors']
@@ -81,8 +84,13 @@ for root, dirs, files in os.walk(directory):
             
             # Remove non-true detectors (overflow channels) from the photon_data dictionary
             valid = detectors != 15 # enter all nontrue detector numbers. 
-            for field in ('detectors', 'timestamps', 'nanotimes'):
-                d['photon_data'][field] = d['photon_data'][field][valid]
+            
+            if (meta['record_type'][-2:] == 'T2'):         # added by HK for T2 mode (line 88-91) 
+                for field in ('detectors', 'timestamps'):
+                    d['photon_data'][field] = d['photon_data'][field][valid]
+            else:
+                for field in ('detectors', 'timestamps', 'nanotimes'):
+                    d['photon_data'][field] = d['photon_data'][field][valid]
             
             # Check that the timestamps are monotonically increasing
             ts = d['photon_data']['timestamps']

@@ -36,7 +36,6 @@ Purpose: get autocorrelation curve from binned photon arrival data
 """
 
 #%matplotlib inline #This line is for Jupyter Notebook environment
-import os
 import csv
 import numpy as np
 import math
@@ -45,6 +44,7 @@ import matplotlib.pyplot as plt
 import multipletau as mt
 import user_input
 from binning import photon_bin
+from itertools import zip_longest
 
 
 
@@ -116,7 +116,7 @@ def corr(ts_gated_d, ts_unit, bin_width_sec, resolution, channels):
 
     Returns
     -------
-    corr_array : TYPE
+    corr_array_d : TYPE
         DESCRIPTION.
 
     """
@@ -126,35 +126,35 @@ def corr(ts_gated_d, ts_unit, bin_width_sec, resolution, channels):
     
     binwidth_n = int(bin_width_sec / ts_unit) # binwidth in numbers : how many cycles per bin
     
+    corr_array_d = {}
     if len(channels) == 1: 
         binned_data = photon_bin(ts_gated_d['ch{0}'.format(channels[0])], binwidth_n, ts_gated_d['ch{0}'.format(channels[0])][0], ts_gated_d['ch{0}'.format(channels[0])][-1] ).astype(np.float64)
-        corr_array = mt.autocorrelate(binned_data, m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
-        plt.plot(corr_array[:,0], corr_array[:, 1])
+        corr_array_d['auto_ch{0}'.format(channels[0])] = mt.autocorrelate(binned_data, m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
+        plt.plot(corr_array_d['auto_ch{0}'.format(channels[0])][:, 0], corr_array_d['auto_ch{0}'.format(channels[0])][:, 1])
     
     elif len(channels) == 2:
         # set time range (start/end) of binning to match length for all 4 correlations, 
         start = min(ts_gated_d['ch{0}'.format(channels[0])][0], ts_gated_d['ch{0}'.format(channels[1])][0])
         end = max(ts_gated_d['ch{0}'.format(channels[0])][-1], ts_gated_d['ch{0}'.format(channels[1])][-1])
         
-        binneddata_d = {}
-        corr_d = {}
+        binneddata_d = {} 
         clr = 'b'   # 1st ch autocorrelation graph color is blue
         for ch in channels: 
             binneddata_d['ch{0}'.format(ch)] = photon_bin(ts_gated_d['ch{0}'.format(ch)], binwidth_n, start, end).astype(np.float64)
-            corr_d['auto_ch{0}'.format(ch)] = mt.autocorrelate(binneddata_d['ch{0}'.format(ch)], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
-            plt.plot(corr_d['auto_ch{0}'.format(ch)][:,0], corr_d['auto_ch{0}'.format(ch)][:, 1], color = clr)
+            corr_array_d['auto_ch{0}'.format(ch)] = mt.autocorrelate(binneddata_d['ch{0}'.format(ch)], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress='average', ret_sum=False)
+            lbl = 'Ch{0}'.format(ch)
+            plt.plot(corr_array_d['auto_ch{0}'.format(ch)][:,0], corr_array_d['auto_ch{0}'.format(ch)][:, 1], color = clr, label = lbl)
             clr = 'g' # 2nd ch autocorrelation graph color is green
             
-        corr_d['cross_pos'] = mt.correlate(binneddata_d['ch{0}'.format(channels[0])], binneddata_d['ch{0}'.format(channels[1])], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress="average", ret_sum=False)
-        corr_d['cross_neg'] = mt.correlate(binneddata_d['ch{0}'.format(channels[1])], binneddata_d['ch{0}'.format(channels[0])], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress="average", ret_sum=False)
+        corr_array_d['cross_pos'] = mt.correlate(binneddata_d['ch{0}'.format(channels[0])], binneddata_d['ch{0}'.format(channels[1])], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress="average", ret_sum=False)
+        corr_array_d['cross_neg'] = mt.correlate(binneddata_d['ch{0}'.format(channels[1])], binneddata_d['ch{0}'.format(channels[0])], m = resolution, deltat = bin_width_sec, normalize=True, copy=True, dtype=None, compress="average", ret_sum=False)
         
-        plt.plot(corr_d['cross_pos'][:,0], corr_d['cross_pos'][:, 1], color = 'k') # positive crosscorrelation color is black
-        plt.plot(corr_d['cross_neg'][:,0], corr_d['cross_neg'][:, 1], color = 'm') # positive crosscorrelation color is magenta
+        plt.plot(corr_array_d['cross_pos'][:,0], corr_array_d['cross_pos'][:, 1], color = 'k', label = 'Pos.Cross-corr.') # positive crosscorrelation color is black
+        plt.plot(corr_array_d['cross_neg'][:,0], corr_array_d['cross_neg'][:, 1], color = 'm', label = 'Neg.Cross-corr.') # negative crosscorrelation color is magenta
         
     else:
         raise ValueError('ATTENTION: more than 2 channels detected. Check detectors data.\n')
     
-   
     
     # x-axis (lag-time in second) to Logarithmic scale 
     plt.xscale("log")
@@ -168,95 +168,104 @@ def corr(ts_gated_d, ts_unit, bin_width_sec, resolution, channels):
     plt.ylabel('g(τ)', fontdict = font_y)
     plt.yticks(fontsize=15)
     
-    # TODO: 7/3 WORKING HERE how to build up the corr_array?
-    return corr_array
+    plt.legend()
+
+    return corr_array_d
     
 #%%
 
 def main():
-    """
+    # User input data
+    filename = input("Enter file name: ") # test.hdf5
+    a = user_input.UserInput(filename)
+    b_w = input("Enter bin width in ns (default = 200 ns) : ") # nano second
     
+    if b_w !="":
+        a.bin_width_ns = int(b_w)
+        
+    res = input("Enter desired resolution in int (default = 8): ")    
+    if res !="":
+        a.resolution = res 
+ 
+    tg_confirm = False
+    while (tg_confirm == False):
+        tg_op = input("Will you use time gating? (Y/N): ")
+        if tg_op == "Y" or tg_op =="y":
+            a.time_gate_op = True
+            tg_confirm = True
+        elif tg_op == "N" or  tg_op == "n":
+            a.time_gate_op = False
+            tg_confirm = True
+        else:
+            pass
+    
+    h5file = tables.open_file(a.filename)
+    photon_data = h5file.root.photon_data
+    photon_data.measurement_specs.measurement_type.read().decode()
+ 
+    nanotimes = photon_data.nanotimes.read()
+    tcspc_unit = photon_data.nanotimes_specs.tcspc_unit.read()
+    tcspc_num_bins = photon_data.nanotimes_specs.tcspc_num_bins.read()
+    tcspc_range = photon_data.nanotimes_specs.tcspc_range.read()
+ 
+    ts = photon_data.timestamps.read()
+    ch_detectors = photon_data.detectors.read()
+    channels = np.unique(ch_detectors)
+    ts_unit = photon_data.timestamps_specs.timestamps_unit.read() # ~50ns
+ 
+    tg = {}
+    if a.time_gate_op == True:
+        for ch in channels: 
+            tg['ch{0}_st'.format(ch)] = math.floor(int(input ("time gate START time of CH{0} in nano second: ".format(ch)))*1E-9 / tcspc_unit) # convert to count number
+            tg['ch{0}_end'.format(ch)] = math.ceil(int(input ("time gate END time of CH{0} in nano second: ".format(ch)))*1E-9 / tcspc_unit) # convert to count number
+    else:
+        for ch in channels:  
+            tg['ch{0}_st'.format(ch)] = 0
+            tg['ch{0}_end'.format(ch)] = math.ceil(ts_unit/ tcspc_unit)
+    
+    nanotimes_d = tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, ch_detectors, channels, tg)
 
-    Returns
-    -------
-    None.
-
-    """
-   # User input data
-   filename = input("Enter file name: ") #test.hdf5
-   a = user_input.UserInput(filename)
-   b_w = input("Enter bin width in ns (default = 200 ns) : ") # nano second
-   if b_w !="":
-       a.bin_width_ns = int(b_w)
-   res = input("Enter desired resolution in int (default = 8): ")    
-   if res !="":
-       a.resolution = res 
-
-   tg_confirm = False
-   while (tg_confirm == False):
-       tg_op = input("Will you use time gating? (Y/N): ")
-       if tg_op == "Y" or tg_op =="y":
-           a.time_gate_op = True
-           tg_confirm = True
-       elif tg_op == "N" or  tg_op == "n":
-           a.time_gate_op = False
-           tg_confirm = True
-       else:
-           pass
-
-
-
-   h5file = tables.open_file(a.filename)
-   photon_data = h5file.root.photon_data
-   photon_data.measurement_specs.measurement_type.read().decode()
-
-   nanotimes = photon_data.nanotimes.read()
-   tcspc_unit = photon_data.nanotimes_specs.tcspc_unit.read()
-   tcspc_num_bins = photon_data.nanotimes_specs.tcspc_num_bins.read()
-   tcspc_range = photon_data.nanotimes_specs.tcspc_range.read()
-
-   ts = photon_data.timestamps.read()
-   ch_detectors = photon_data.detectors.read()
-   channels = np.unique(ch_detectors)
-   ts_unit = photon_data.timestamps_specs.timestamps_unit.read() # ~50ns
-   
-   #TODO: ADD Check when len(channels) > 2
-   
-
-   tg = {}
-   if a.time_gate_op == True:
-       for ch in channels: 
-           tg['ch{0}_st'.format(ch)] = math.floor(int(input ("time gate START time of CH{0} in nano second: ".format(ch)))*1E-9 / tcspc_unit) # convert to count number
-           tg['ch{0}_end'.format(ch)] = math.ceil(int(input ("time gate END time of CH{0} in nano second: ".format(ch)))*1E-9 / tcspc_unit) # convert to count number
-   else:
-       for ch in channels:  
-           tg['ch{0}_st'.format(ch)] = 0
-           tg['ch{0}_end'.format(ch)] = math.ceil(ts_unit/ tcspc_unit)
-             
-   nanotimes_d = tcspc_hist(nanotimes, tcspc_num_bins, tcspc_unit, ch_detectors, channels, tg)
-
-   # split each channel's timestamps and apply timegating
-   ts_gated_d = {} # gated timestamps 
-   for ch in channels: 
-       ts_gated_d['ch{0}'.format(ch)] = ts[ch_detectors == ch]
-       ts_gated_d['ch{0}'.format(ch)] = ts_gated_d['ch{0}'.format(ch)][(nanotimes_d['ch{0}'.format(ch)] >= tg['ch{0}_st'.format(ch)]) & (nanotimes_d['ch{0}'.format(ch)] <= tg['ch{0}_end'.format(ch)])]
-
-   bin_width_sec = a.bin_width_ns * 1E-9  # convert unit from ns to second
-   correlation = corr(ts_gated_d, ts_unit, bin_width_sec, a.resolution, channels)
-# TODO: build 'correlation' in corr function
-
-   # Data write
-   #header_file =
+    # split each channel's timestamps and apply timegating
+    ts_gated_d = {} # gated timestamps 
+    for ch in channels: 
+        ts_gated_d['ch{0}'.format(ch)] = ts[ch_detectors == ch] 
+        ts_gated_d['ch{0}'.format(ch)] = ts_gated_d['ch{0}'.format(ch)][(nanotimes_d['ch{0}'.format(ch)] >= tg['ch{0}_st'.format(ch)]) & (nanotimes_d['ch{0}'.format(ch)] <= tg['ch{0}_end'.format(ch)])]
+ 
+    bin_width_sec = a.bin_width_ns * 1E-9  # convert unit from ns to second
+    correlation_d = corr(ts_gated_d, ts_unit, bin_width_sec, a.resolution, channels)
    
 
-   
-   #ts_file = 
-   
-   
-   
-   #autocorr_file = 
-   
+    # TODO: TESTING 1 channel Data code 7/10
+    # Data write
+    # TODO: write header file
 
+    
+    # write timestamps file
+    ts_d = [ch_detectors, ts]
+    export_data_ts = zip_longest(*ts_d, fillvalue = '')
+    with open(a.filename[:-5] + '_timestamps.csv', 'w', newline='') as csvfile:
+        wr = csv.writer(csvfile)
+        wr.writerow(('Channel', 'Time Tag'))
+        wr.writerows(export_data_ts)
+    csvfile.close()
+            
+    # write correlation file
+    with open(a.filename[:-5] + '_correlations.csv', 'w', newline='') as csvfile:
+        wr = csv.writer(csvfile) 
+        
+        if len(channels) == 1:
+            wr.writerow(('Tau in s', 'G(A,A)'))
+            wr.writerows(correlation_d['auto_ch{0}'.format(channels[0])])
+        
+        else: 
+            corr_d = [correlation_d['auto_ch{0}'.format(channels[0])][:,0], correlation_d['auto_ch{0}'.format(channels[0])][:,1], correlation_d['auto_ch{0}'.format(channels[1])][:,1], correlation_d['cross_pos'][:,1], correlation_d['cross_neg'][:,1]]
+            export_data_cor = zip_longest(*corr_d, fillvalue = '')
+        
+            wr.writerow(('Tau in s', 'G(A,A)', 'G(B,B)', 'G(A,B)', 'G(B,A)'))
+            wr.writerows(export_data_cor)
+    
+    csvfile.close()
+    
 
 if __name__ == "__main__":
     main()
