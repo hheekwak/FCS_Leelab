@@ -234,8 +234,6 @@ def main():
     bin_width_sec = a.bin_width_ns * 1E-9  # convert unit from ns to second
     correlation_d = corr(ts_gated_d, ts_unit, bin_width_sec, a.resolution, channels)
    
-
-    # TODO: TESTING 1 channel Data code 7/10
     # Data write
     # TODO: write header file
 

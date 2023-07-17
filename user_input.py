@@ -19,7 +19,3 @@ class UserInput:
             self.resolution = resolution
             self.time_gate_op = time_gate_op
             print('File found, it will proceed.')
-
-
-    #def set_time_gate(tg1_st = 0, tg1_en = 50, tg2_st = 0, tg2_en = 50): #TODO:ASK DR.LEE if max time (50 ns) changes 
-        

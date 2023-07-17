@@ -18,13 +18,13 @@ dye_names = 'ATTO488, '
 buffer_name = 'PBS pH 7.4'
 
 # Assign the directory path where the data files are stored
-directory = "G:\My Drive\Hyunhee work_local\FCS_Leelab\just_folder" # Enter the top directory
+directory = "G:\My Drive\Hyunhee work_local\FCS_Leelab" # Enter the top directory
 
 #%%
 import os
 
 if os.path.exists(directory):
-    print('Directory found, it will be proceed.')
+    print('Directory found, it will proceed.')
 else:
     print('ATTENTION: Directory not found, please check the directory name.\n'
           '           (current value "%s")' % directory)
@@ -68,11 +68,8 @@ for root, dirs, files in os.walk(directory):
             # Print the file comment from the tags field
             print(tags['File_Comment']['data'])
             
-            if (meta['record_type'][-2:] == 'T2'):         # added by HK for T2 mode (line 71-73) 
-                pass
-            else: 
-                # Plot the alternation histogram from the data
-                phc.plotter.alternation_hist(d)
+            # Plot the alternation histogram from the data
+            phc.plotter.alternation_hist(d)
             
             # Extract the detectors and their counts from the photon_data dictionary
             detectors = d['photon_data']['detectors']
@@ -85,11 +82,7 @@ for root, dirs, files in os.walk(directory):
             # Remove non-true detectors (overflow channels) from the photon_data dictionary
             valid = detectors != 15 # enter all nontrue detector numbers. 
             
-            if (meta['record_type'][-2:] == 'T2'):         # added by HK for T2 mode (line 88-91) 
-                for field in ('detectors', 'timestamps'):
-                    d['photon_data'][field] = d['photon_data'][field][valid]
-            else:
-                for field in ('detectors', 'timestamps', 'nanotimes'):
+            for field in ('detectors', 'timestamps', 'nanotimes'):
                     d['photon_data'][field] = d['photon_data'][field][valid]
             
             # Check that the timestamps are monotonically increasing
