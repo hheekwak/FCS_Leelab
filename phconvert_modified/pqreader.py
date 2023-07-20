@@ -4,7 +4,7 @@ Modified on Wed Jul 4 2023
 @author: Hyunhee Kwak (Modified part only) The Lee Lab of San Diego State University
 Purpose: add variable "isT2" and conditions of rtPicoHarpT2 mode in 'load_ptu' function
 Modified lines: added lines - # 56, 120, 125, 131, 136 # 141-146, # 170-172, 
-                modifired - # 1058
+                modified line - # 1058
 
 '''
 

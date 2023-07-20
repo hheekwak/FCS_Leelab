@@ -9,7 +9,11 @@ Purpose: Convert PicoQuant photoncounting file to data dictionary and data files
 
 """
 
-
+import os
+import csv
+import phconvert as phc
+import numpy as np
+from itertools import zip_longest
 
 #%%
 
@@ -241,38 +245,33 @@ def ptu_ts_file(d, filepath):
 
 #%%
 
-import os
-import csv
-import phconvert as phc
-import numpy as np
-from itertools import zip_longest
-
-
-if os.path.exists(directory):
-    print('Directory found, it will proceed.')
-else:
-    print('ATTENTION: Directory not found, please check the directory name.\n'
-          '           (current value "%s")' % directory)
-
-# Walk through the directory tree and iterate over each file
-for root, dirs, files in os.walk(directory):
-    for file in files:
-        # Check if the file extension is '.ptu'
-        if file.endswith('.ptu'):
-            # Create the filepath by joining the root directory and file name
-            filepath = os.path.join(root, file)
-            d, meta, tags = read_ptu(filepath)
-            name = file[:-4]
-            newpath = filepath[:-4]
-            
-            # make a directory of the corresponing file  
-            if not os.path.exists(newpath):
-                os.mkdir(newpath)
-            
-            filename = os.path.join(newpath, name)
-            # header file write
-            ptu_header_file(tags, filename)
-            # timestamps file write
-            ptu_ts_file(d, filename)
+def main():
+    if os.path.exists(directory):
+        print('Directory found, it will proceed.')
+    else:
+        print('ATTENTION: Directory not found, please check the directory name.\n'
+              '           (current value "%s")' % directory)
+    
+    # Walk through the directory tree and iterate over each file
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            # Check if the file extension is '.ptu'
+            if file.endswith('.ptu'):
+                # Create the filepath by joining the root directory and file name
+                filepath = os.path.join(root, file)
+                d, meta, tags = read_ptu(filepath)
+                name = file[:-4]
+                newpath = filepath[:-4]
+                
+                # make a directory of the corresponing file  
+                if not os.path.exists(newpath):
+                    os.mkdir(newpath)
+                
+                filename = os.path.join(newpath, name)
+                # header file write
+                ptu_header_file(tags, filename)
+                # timestamps file write
+                ptu_ts_file(d, filename)
         
-            
+if __name__ == "__main__":
+            main()
