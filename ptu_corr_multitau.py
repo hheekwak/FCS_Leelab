@@ -22,7 +22,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import multipletau as mt
-import user_input
+from user_input import *
 import ptu_reader
 from binning import photon_bin
 from itertools import zip_longest
