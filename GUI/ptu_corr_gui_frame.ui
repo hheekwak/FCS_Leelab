@@ -10,6 +10,12 @@
     <height>800</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <weight>50</weight>
+    <bold>false</bold>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -17,22 +23,26 @@
    <widget class="QLabel" name="Title">
     <property name="geometry">
      <rect>
-      <x>100</x>
+      <x>160</x>
       <y>0</y>
-      <width>340</width>
-      <height>61</height>
+      <width>190</width>
+      <height>60</height>
      </rect>
     </property>
     <property name="font">
      <font>
+      <family>Comic Sans MS</family>
       <pointsize>20</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
     <property name="layoutDirection">
      <enum>Qt::LeftToRight</enum>
     </property>
     <property name="text">
-     <string>FCS correlation from ptu file</string>
+     <string>FCS correlator</string>
     </property>
    </widget>
    <widget class="QLabel" name="filename_label">
@@ -48,6 +58,8 @@
      <font>
       <family>Arial</family>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -67,6 +79,8 @@
      <font>
       <family>Arial</family>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -86,6 +100,8 @@
      <font>
       <family>Arial</family>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -105,6 +121,8 @@
      <font>
       <family>Arial</family>
       <pointsize>10</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -136,6 +154,8 @@
     <property name="font">
      <font>
       <pointsize>10</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -154,6 +174,8 @@
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
    </widget>
@@ -169,6 +191,8 @@
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
    </widget>
@@ -219,6 +243,8 @@
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="title">
@@ -274,6 +300,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -293,6 +321,8 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -328,6 +358,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -369,6 +401,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -388,6 +422,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -407,6 +443,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -426,6 +464,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -445,6 +485,8 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -464,6 +506,8 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -483,6 +527,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -502,6 +548,8 @@
       <font>
        <family>Arial</family>
        <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -521,6 +569,8 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -768,6 +818,8 @@
     <property name="font">
      <font>
       <pointsize>10</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -787,6 +839,8 @@
      <font>
       <family>Arial</family>
       <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -928,9 +982,9 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>89</red>
-          <green>66</green>
-          <blue>180</blue>
+          <red>0</red>
+          <green>0</green>
+          <blue>0</blue>
          </color>
         </brush>
        </colorrole>
@@ -957,9 +1011,9 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>89</red>
-          <green>66</green>
-          <blue>180</blue>
+          <red>0</red>
+          <green>0</green>
+          <blue>0</blue>
          </color>
         </brush>
        </colorrole>
@@ -1020,7 +1074,7 @@
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
-      <underline>true</underline>
+      <underline>false</underline>
       <strikeout>false</strikeout>
      </font>
     </property>
@@ -1043,9 +1097,9 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>89</red>
-          <green>66</green>
-          <blue>180</blue>
+          <red>0</red>
+          <green>0</green>
+          <blue>0</blue>
          </color>
         </brush>
        </colorrole>
@@ -1072,9 +1126,9 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>89</red>
-          <green>66</green>
-          <blue>180</blue>
+          <red>0</red>
+          <green>0</green>
+          <blue>0</blue>
          </color>
         </brush>
        </colorrole>
@@ -1135,7 +1189,7 @@
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
-      <underline>true</underline>
+      <underline>false</underline>
       <strikeout>false</strikeout>
      </font>
     </property>

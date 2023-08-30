@@ -154,8 +154,6 @@ class WindowClass(QMainWindow, form_class) :
         self.run_pushButton_2.setEnabled(True)
          
     def batch_process(self):
-        file_queue = Queue(maxsize = 0)
-        print(file_queue)
         for root, dirs, files in os.walk(self.dname):
             for file in files:
                 # Check if the file extension is '.ptu'
@@ -164,7 +162,8 @@ class WindowClass(QMainWindow, form_class) :
                     self.filename = (os.path.join(root, file))
                     print(self.filename)
                     if (self.preparation()):
-                        self.onBatchRun()
+                        self.onBatchRun()                
+        print("Batch process completed. ")
                     
     def preparation(self):
         self.d, self.meta, self.tags = ptu_reader.read_ptu(self.filename)
@@ -215,6 +214,7 @@ class WindowClass(QMainWindow, form_class) :
             self.binwidth_label.setText("Current Bin width is set as default = 200 ns")
         else:
             self.bin_width_ns = int(self.binwidth_line.text())
+            self.bin_width_sec = self.bin_width_ns * 1E-9 
             self.binwidth_label.setText("Current Bin width is set as " + self.binwidth_line.text() + " ns")
         self.resolution_line.setCursorPosition(0)
             
@@ -298,13 +298,17 @@ class WindowClass(QMainWindow, form_class) :
     def onIndividualRun(self):
         self.batchRun = False
         self.onStart()
+        print("Individual process completed. ")
         
     def onBatchRun(self):
         self.batchRun = True
         self.onStart()
     
     def onStart(self):
-        print("onStart started")
+        # Clear the plot before new work
+        self.fig.clear()
+        
+        
         # Widgets enabled/disabled during the process
         self.cancel_flag = threading.Event()
         self.cancel_pushButton.setEnabled(True)
@@ -345,7 +349,6 @@ class WindowClass(QMainWindow, form_class) :
         
         
     def ch_time_gating(self):
-        print("We are working on it.")
         # split each channel's timestamps
         self.ts_gated_d = {}
         for ch in self.channels: 
@@ -360,7 +363,7 @@ class WindowClass(QMainWindow, form_class) :
                 self.ts_gated_d['ch{0}'.format(ch)] = self.ts_gated_d['ch{0}'.format(ch)][(self.nanotimes_d['ch{0}'.format(ch)] >= self.tg['ch{0}_st'.format(ch)]) & (self.nanotimes_d['ch{0}'.format(ch)] <= self.tg['ch{0}_end'.format(ch)])]
 
     def run_corr(self):
-       
+        print("Correlation step takes a while... ")
         #-	Issue_1: multiple tau correlation function results in data point interval length of resolution/2 but not resolution from the second level 
         #           e.g.) when m = 8, 8-4-4-4-4-4-, when m = 16, 16-8-8-8-8-8- 
         #           To have the data list in desired data point length for each level, used 2*a.resolution as resolution (m)
@@ -429,7 +432,6 @@ class WindowClass(QMainWindow, form_class) :
             
                 wr.writerow(('Tau in s', 'G(A,A)', 'G(B,B)', 'G(A,B)', 'G(B,A)'))
                 wr.writerows(export_data_cor)
-        print("Done. ")
         
     def onCancelClick(self):
         # Called when the cancel_pushButton is clicked
