@@ -26,7 +26,6 @@ from queue import Queue
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas 
-#from matplotlib.figure import Figure
 
 #%% photon_bin() function from binning.py
 
@@ -498,12 +497,15 @@ class WindowClass(QMainWindow, form_class) :
         font_x = {'size':font_size}
         ax2.set_xlabel('lag time (s)', fontdict = font_x)
         ax2.xaxis.set_tick_params(labelsize=font_size)
+        ax2.xaxis.set_major_locator(matplotlib.ticker.LogLocator(numticks=999, subs=(.1,.2,.3,.4,.5,.6,.7,.8,.9)))
+
         
         # y-axis (extent of correlation)
         ax2.set_ylim(0 ,1)
         font_y = {'size':font_size}
         ax2.set_ylabel('g(τ)', fontdict = font_y)
         ax2.yaxis.set_tick_params(labelsize=font_size)
+        ax2.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
         ax2.legend()
 
 
