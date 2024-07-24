@@ -48,6 +48,7 @@ Files are created in a folder named after .ptu file
 
    - find the installed location of “phconvert" 
      - ﻿e.g. C:\ProgramData\anaconda3\Lib\site-packages\phconvert
+     - e.g. Users/user_name/myenv/lib/python3.11/site-pachages/phconvert
    - change the name of original 'pqreader.py' file appropriately to keep the original file safely
      - e.g. pqreader_original.py   
    - copy the modified “pqreader.py” file in "pqreader_modified" folder at GitHub into phconvert folder at your local machine
