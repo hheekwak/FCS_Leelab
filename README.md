@@ -51,6 +51,9 @@ Files are created in a folder named after .ptu file
    - change the name of original 'pqreader.py' file appropriately to keep the original file safely
      - e.g. pqreader_original.py   
    - copy the modified “pqreader.py” file in "pqreader_modified" folder at GitHub into phconvert folder at your local machine
+  
+4. Downgrade numpy to 1.x.x if you need (July 2024)
+   - numpy version 2.0.1 is not working with the error message "ValueError: numpy.dtype size changed, may indicate binary incompatibility."
 
 ## Running the test
 - Run ptu_corr_multitau.py and follow the prompts (e.g. "Enter file name (*.ptu): " -> test.ptu)
