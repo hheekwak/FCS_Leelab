@@ -1,13 +1,3 @@
-'''
-Modified on Wed Jul 4 2023
-
-@author: Hyunhee Kwak (Modified part only) The Lee Lab of San Diego State University
-Purpose: add variable "isT2" and conditions of rtPicoHarpT2 mode in 'load_ptu' function
-Modified lines: added lines - # 56, 120, 125, 131, 136 # 141-146, # 170-172, 
-                modified line - # 1058
-
-'''
-
 #
 # phconvert - Reference library to read and save Photon-HDF5 files
 #
@@ -55,6 +45,7 @@ try:
     import numba
 except ImportError:
     has_numba = False
+
  
 # Constants used to decode the PQ file headers
 # Tag Types
@@ -84,6 +75,8 @@ _ptu_rec_type = dict(
     rtTimeHarp260NT2 = 0x00010205,  # (SubID = $00 ,RecFmt: $01) (V1), T-Mode: $02 (T2), HW: $05 (TimeHarp260N)
     rtTimeHarp260PT3 = 0x00010306,  # (SubID = $00 ,RecFmt: $01) (V1), T-Mode: $03 (T3), HW: $06 (TimeHarp260P)
     rtTimeHarp260PT2 = 0x00010206,  # (SubID = $00 ,RecFmt: $01) (V1), T-Mode: $02 (T2), HW: $06 (TimeHarp260P)
+    rtMultiHarpNT3   = 0x00010307,  # (SubID = $00 ,RecFmt: $01) (V1), T-Mode: $02 (T3), HW: $07 (MultiHarp150N)
+    rtMultiHarpNT2   = 0x00010207,  # (SubID = $00 ,RecFmt: $01) (V1), T-Mode: $02 (T2), HW: $07 (MultiHarp150N))
     )
 
 # Reverse mappings
@@ -117,33 +110,28 @@ def load_ptu(filename, ovcfunc=None):
     t3records, record_type, tags = ptu_reader(filename)
 
     if record_type == 'rtPicoHarpT3':
-        isT2 = False      # added by HK
         detectors, timestamps, nanotimes = process_t3records(
             t3records, time_bit=16, dtime_bit=12, ch_bit=4, special_bit=False,
             ovcfunc=ovcfunc)
     elif record_type == 'rtHydraHarpT3':
-        isT2 = False      # added by HK
         detectors, timestamps, nanotimes = process_t3records(
             t3records, time_bit=10, dtime_bit=15, ch_bit=6, special_bit=True,
             ovcfunc=ovcfunc)
     elif record_type in ('rtHydraHarp2T3', 'rtTimeHarp260NT3',
                          'rtTimeHarp260PT3'):
-        isT2 = False      # added by HK
         detectors, timestamps, nanotimes = process_t3records(
             t3records, time_bit=10, dtime_bit=15, ch_bit=6, special_bit=True,
             ovcfunc=_correct_overflow_nsync)
-    elif record_type in ('rtHydraHarp2T2', 'rtTimeHarp260NT2','rtTimeHarp260PT2'):
-        isT2 = True      # added by HK
+    elif record_type in ('rtHydraHarp2T2', 'rtTimeHarp260NT2','rtTimeHarp260PT2', 'rtMultiHarpNT3'):
         detectors, timestamps = process_t2records(t3records,
                 time_bit=25, ch_bit=6, special_bit=True,
                 ovcfunc=_correct_overflow_nsync)
         nanotimes = None
-    elif record_type == 'rtPicoHarpT2':       # added by HK
-        isT2 = True
+    elif record_type in ('rtPicoHarpT2'):
         detectors, timestamps = process_t2records(t3records,
                 time_bit=28, ch_bit=4, special_bit=False,
                 ovcfunc=ovcfunc)
-        nanotimes = None    
+        nanotimes = None
     else:
         msg = ('Sorry, decoding "%s" record type is not implemented!' %
                record_type)
@@ -165,15 +153,12 @@ def load_ptu(filename, ovcfunc=None):
         'creation_time': creation_time,
         'hardware_name': hw_type['data'],
         'record_type': record_type,
-        'tags': _convert_multi_tags(tags),
-        'isT2': isT2}   # added by HK
-    if isT2:            # added by HK
-        pass
-    else:
+        'tags': _convert_multi_tags(tags)}
+    if record_type.endswith('T3'):
         meta['nanotimes_unit'] = tags['MeasDesc_Resolution']['value']
         meta['laser_repetition_rate'] = tags['TTResult_SyncRate']['value']
-        
     return timestamps, detectors, nanotimes, meta
+
 
 def load_phu(filename):
     """Load data from a PicoQuant .phu file.
@@ -1055,7 +1040,7 @@ def  process_t2records(t2records, time_bit=25,
     if special_bit:
         ch_bit += 1
     assert ch_bit <= 8
-    assert time_bit <= 28       # modified by HK from 25->28
+    assert time_bit <= 25
     assert time_bit + ch_bit== 32
 
     # called "dtime" in picoquant library
