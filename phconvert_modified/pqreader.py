@@ -1,3 +1,10 @@
+'''
+Modified on Wed Jul 24 2024
+@author: Hyunhee Kwak (Modified part only) The Lee Lab of San Diego State University
+Purpose: add T2 information on meta, and set time_bit as 28 instead of 25
+Modified line: added lines # 164, 166 modified line # 1052
+'''
+
 #
 # phconvert - Reference library to read and save Photon-HDF5 files
 #
@@ -153,8 +160,10 @@ def load_ptu(filename, ovcfunc=None):
         'creation_time': creation_time,
         'hardware_name': hw_type['data'],
         'record_type': record_type,
-        'tags': _convert_multi_tags(tags)}
+        'tags': _convert_multi_tags(tags),
+        'isT2': True}                # added by HK
     if record_type.endswith('T3'):
+        meta['isT2'] = False         # added by HK
         meta['nanotimes_unit'] = tags['MeasDesc_Resolution']['value']
         meta['laser_repetition_rate'] = tags['TTResult_SyncRate']['value']
     return timestamps, detectors, nanotimes, meta
@@ -1040,7 +1049,7 @@ def  process_t2records(t2records, time_bit=25,
     if special_bit:
         ch_bit += 1
     assert ch_bit <= 8
-    assert time_bit <= 25
+    assert time_bit <= 28       # modified by HK from 25->28
     assert time_bit + ch_bit== 32
 
     # called "dtime" in picoquant library
