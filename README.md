@@ -3,8 +3,13 @@ Calculator for Fluorescence correlation curves from PicoQuant ptu file
 
 ## About FCS_Leelab project
 This project's purpose is to reduce data process steps to obtain the fluorescence correlation spectroscopy (FCS) data within a valid (customized) range
+
+<img width="828" alt="Screenshot 2024-07-23 at 10 46 14 AM" src="https://github.com/user-attachments/assets/78df455c-149f-489d-8a3b-3e226f47fadc">
+<img width="1038" alt="Screenshot 2024-07-24 at 12 11 28 PM" src="https://github.com/user-attachments/assets/d4e498d6-0d7c-49f5-bd31-6efc1b4f5613">
+
 ### Histogram
-- Draw TCSPC histrogram with a bin width set by user (defalut 200 ns)
+- Draw TCSPC histrogram with a bin width set by user (default 200 ns)
+  
 ### Correlation
 - Time gating option (user defined)
 - Resolution, number of points on each level of lag-time when to scale up, can be set by user (default 8)
